@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ file[2] }} - EY{% endblock %}
+{% block content %}
+<div class="card file-view">
+    <div class="file-header">
+        <div class="file-header-content">
+            {% if logo %}
+                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo" class="file-view-logo">
+            {% endif %}
+            <div class="file-title-section">
+                <h2>{{ file[2] }}</h2>
+                {% if file[4] %}
+                    <span class="badge badge-public">Public</span>
+                {% else %}
+                    <span class="badge badge-private">Private</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vista previa del documento -->
+    <div class="file-preview">
+        {% set file_extension = file[8].lower() %}
+        {% if file_extension in ['jpg', 'jpeg', 'png', 'gif'] %}
+            <div class="image-preview">
+                <img src="{{ url_for('download_file', token=file[5]) }}" alt="{{ file[2] }}" class="preview-image">
+            </div>
+        {% elif file_extension == 'pdf' %}
+            <div class="pdf-preview">
+                <iframe src="{{ url_for('download_file', token=file[5]) }}" class="preview-pdf" type="application/pdf">
+                    <p>Your browser does not support PDF preview. 
+                    <a href="{{ url_for('download_file', token=file[5]) }}">Click here to download the file</a>.</p>
+                </iframe>
+            </div>
+        {% else %}
+            <div class="file-icon-preview">
+                <div class="file-icon">
+                    {% if file_extension in ['doc', 'docx'] %}
+                        <i class="file-icon-doc">📄</i>
+                    {% elif file_extension == 'txt' %}
+                        <i class="file-icon-txt">📝</i>
+                    {% elif file_extension == 'zip' %}
+                        <i class="file-icon-zip">🗜️</i>
+                    {% else %}
+                        <i class="file-icon-default">📁</i>
+                    {% endif %}
+                </div>
+                <p class="preview-message">Preview not available for this file type</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="file-details">
+        <div class="detail-item">
+            <label>File type:</label>
+            <span>{{ file[8] }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Size:</label>
+            <span>{{ (file[7] / 1024) | round(2) }} KB</span>
+        </div>
+        <div class="detail-item">
+            <label>Upload date:</label>
+            <span>{{ file[6] }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Downloads:</label>
+            <span>{{ file[9] }}</span>
+        </div>
+    </div>
+    
+    {% if current_user.is_authenticated %}
+    <div class="share-section">
+        <h3>Share link</h3>
+        <div class="share-input">
+            <input type="text" value="{{ request.url }}" readonly class="form-control">
+            <button onclick="copyLink('{{ request.url }}')" class="btn btn-primary">Copy</button>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="file-actions">
+        <a href="{{ url_for('download_file', token=file[5]) }}" class="btn btn-primary">
+            ⬇️ Download
+        </a>
+        {% if current_user.is_authenticated and current_user.id == file[3] %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            Back to Dashboard
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Settings - EY{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Settings</h1>
+</div>
+
+<div class="card">
+    <h3>Application Logo</h3>
+    
+    <div class="logo-settings">
+        <div class="current-logo">
+            {% if logo %}
+                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo actual">
+            {% else %}
+                <div class="logo-placeholder">No logo</div>
+            {% endif %}
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="form-label">Upload new logo</label>
+                <input type="file" name="logo" class="form-control" accept="image/*">
+                <small>The logo will appear on the login page</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Update Logo</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Account Information</h3>
+    
+    <div class="account-info">
+        <div class="info-item">
+            <label>Username:</label>
+            <span>{{ current_user.username }}</span>
+        </div>
+        <div class="info-item">
+            <label>Email:</label>
+            <span>{{ current_user.email }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Usage Statistics</h3>
+    
+    <div class="usage-stats">
+        <div class="stat-item">
+            <label>Used Space:</label>
+            <span>{{ (stats.total_size / 1024 / 1024) | round(2) }} MB / 10 GB</span>
+            <div class="progress-bar">
+                <div class="progress" style="width: {{ (stats.total_size / 10737418240 * 100) | round(2) }}%"></div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <label>Total Downloads:</label>
+            <span>{{ stats.total_downloads }}</span>
+        </div>
+        <div class="stat-item">
+            <label>Shared Files:</label>
+            <span>{{ stats.public_files }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

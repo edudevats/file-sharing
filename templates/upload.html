@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Upload File - EY{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Upload File</h1>
+</div>
+
+<div class="card">
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">☁️</div>
+            <h3>Drag your files here</h3>
+            <p>or click to select</p>
+            <input type="file" name="file" id="fileInput" class="file-input" required>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                Select File
+            </button>
+        </div>
+        
+        <div id="filePreview" class="file-preview" style="display: none;">
+            <div class="file-info">
+                <span id="fileName"></span>
+                <span id="fileSize"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" name="is_public" id="isPublic">
+                <label for="isPublic">
+                    <strong>Make public</strong> - Anyone with the link will be able to access
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                ⬆️ Upload File
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

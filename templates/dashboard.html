@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - EY{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Files</h1>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary">
+        + Upload New File
+    </a>
+</div>
+
+<!-- Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon yellow">📁</div>
+        <div class="stat-details">
+            <h3>{{ stats.total_files }}</h3>
+            <p>Total Files</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">🌍</div>
+        <div class="stat-details">
+            <h3>{{ stats.public_files }}</h3>
+            <p>Public Files</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon dark">🔒</div>
+        <div class="stat-details">
+            <h3>{{ stats.private_files }}</h3>
+            <p>Private Files</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow">💾</div>
+        <div class="stat-details">
+            <h3>{{ (stats.total_size / 1024 / 1024) | round(2) }} MB</h3>
+            <p>Used Space</p>
+        </div>
+    </div>
+</div>
+
+<!-- Files Table -->
+<div class="card">
+    {% if files %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Downloads</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td class="file-name">{{ file[1] }}</td>
+                    <td><span class="file-type-badge">{{ file[6] }}</span></td>
+                    <td>{{ (file[5] / 1024) | round(2) }} KB</td>
+                    <td>
+                        {% if file[2] %}
+                            <span class="badge badge-public">Public</span>
+                        {% else %}
+                            <span class="badge badge-private">Private</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ file[7] }}</td>
+                    <td>{{ file[4][:10] if file[4] else 'N/A' }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('shared_file', token=file[3]) }}" class="btn btn-sm btn-secondary">View</a>
+                            <a href="{{ url_for('toggle_public', file_id=file[0]) }}" class="btn btn-sm btn-primary">
+                                {% if file[2] %}🔒{% else %}🌍{% endif %}
+                            </a>
+                            <button onclick="copyLink('{{ request.url_root }}file/{{ file[3] }}')" class="btn btn-sm btn-secondary">📋</button>
+                            <a href="{{ url_for('delete_file', file_id=file[0]) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">🗑️</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📁</div>
+        <h3>You haven't uploaded any files yet</h3>
+        <p>Start by uploading your first file</p>
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload File</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
