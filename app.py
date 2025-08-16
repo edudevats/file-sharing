@@ -29,12 +29,12 @@ login_manager.login_view = 'login'
 
 def reset_database():
     """Deletes and recreates the database with the correct schema"""
-    # Eliminar la base de datos existente si existe
+    # Delete existing database if it exists
     if os.path.exists('file_sharing.db'):
         os.remove('file_sharing.db')
         print("Previous database deleted.")
     
-    # Crear nueva base de datos
+    # Create new database
     init_db()
     print("New database created with correct schema.")
 
@@ -42,7 +42,7 @@ def init_db():
     conn = sqlite3.connect('file_sharing.db')
     c = conn.cursor()
     
-    # Crear tabla de usuarios
+    # Create users table
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   username TEXT UNIQUE NOT NULL,
@@ -50,7 +50,7 @@ def init_db():
                   password_hash TEXT NOT NULL,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Crear tabla de archivos con todos los campos necesarios
+    # Create files table with all necessary fields
     c.execute('''CREATE TABLE IF NOT EXISTS files
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   filename TEXT NOT NULL,
@@ -64,7 +64,7 @@ def init_db():
                   download_count INTEGER DEFAULT 0,
                   FOREIGN KEY (user_id) REFERENCES users (id))''')
     
-    # Crear tabla de configuración
+    # Create settings table
     c.execute('''CREATE TABLE IF NOT EXISTS settings
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   logo_filename TEXT,
@@ -107,22 +107,22 @@ def get_user_stats(user_id):
     conn = sqlite3.connect('file_sharing.db')
     c = conn.cursor()
     
-    # Total de archivos
+    # Total files
     c.execute("SELECT COUNT(*) FROM files WHERE user_id = ?", (user_id,))
     total_files = c.fetchone()[0]
     
-    # Archivos públicos
+    # Public files
     c.execute("SELECT COUNT(*) FROM files WHERE user_id = ? AND is_public = 1", (user_id,))
     public_files = c.fetchone()[0]
     
-    # Archivos privados
+    # Private files
     private_files = total_files - public_files
     
-    # Tamaño total
+    # Total size
     c.execute("SELECT SUM(file_size) FROM files WHERE user_id = ?", (user_id,))
     total_size = c.fetchone()[0] or 0
     
-    # Total de descargas
+    # Total downloads
     c.execute("SELECT SUM(download_count) FROM files WHERE user_id = ?", (user_id,))
     total_downloads = c.fetchone()[0] or 0
     
@@ -152,14 +152,14 @@ def register():
         conn = sqlite3.connect('file_sharing.db')
         c = conn.cursor()
         
-        # Verificar si el usuario existe
+        # Check if user exists
         c.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
         if c.fetchone():
             flash('Username or email already exists', 'error')
             conn.close()
             return redirect(url_for('register'))
         
-        # Crear nuevo usuario
+        # Create new user
         password_hash = generate_password_hash(password)
         c.execute("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
                   (username, email, password_hash))
@@ -208,13 +208,13 @@ def dashboard():
     conn = sqlite3.connect('file_sharing.db')
     c = conn.cursor()
     
-    # Obtener archivos del usuario
+    # Get user files
     c.execute("""SELECT id, original_filename, is_public, share_token, upload_date, file_size, file_type, download_count 
                  FROM files WHERE user_id = ? ORDER BY upload_date DESC""", (current_user.id,))
     files = c.fetchall()
     conn.close()
     
-    # Obtener estadísticas
+    # Get statistics
     stats = get_user_stats(current_user.id)
     
     return render_template('dashboard.html', files=files, stats=stats)
@@ -235,20 +235,20 @@ def upload():
             return redirect(request.url)
         
         if file and allowed_file(file.filename):
-            # Generar nombre único para el archivo
+            # Generate unique filename
             filename = secure_filename(file.filename)
             unique_filename = f"{secrets.token_hex(8)}_{filename}"
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
             file.save(filepath)
             
-            # Generar token de compartir
+            # Generate sharing token
             share_token = secrets.token_urlsafe(16)
             
-            # Obtener información del archivo
+            # Get file information
             file_size = os.path.getsize(filepath)
             file_type = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'unknown'
             
-            # Guardar en la base de datos
+            # Save to database
             conn = sqlite3.connect('file_sharing.db')
             c = conn.cursor()
             c.execute("""INSERT INTO files (filename, original_filename, user_id, is_public, share_token, file_size, file_type, upload_date)
@@ -275,7 +275,7 @@ def shared_file(token):
     if not file_data:
         abort(404)
     
-    # Verificar si el archivo es público o el usuario es el propietario
+    # Check if file is public or user is the owner
     if not file_data[4] and (not current_user.is_authenticated or current_user.id != file_data[3]):
         abort(403)
     
@@ -293,12 +293,12 @@ def download_file(token):
         conn.close()
         abort(404)
     
-    # Verificar permisos
+    # Check permissions
     if not file_data[4] and (not current_user.is_authenticated or current_user.id != file_data[3]):
         conn.close()
         abort(403)
     
-    # Incrementar contador de descargas
+    # Increment download counter
     c.execute("UPDATE files SET download_count = download_count + 1 WHERE id = ?", (file_data[0],))
     conn.commit()
     conn.close()
@@ -312,7 +312,7 @@ def toggle_public(file_id):
     conn = sqlite3.connect('file_sharing.db')
     c = conn.cursor()
     
-    # Verificar propiedad
+    # Check ownership
     c.execute("SELECT * FROM files WHERE id = ? AND user_id = ?", (file_id, current_user.id))
     file_data = c.fetchone()
     
@@ -320,7 +320,7 @@ def toggle_public(file_id):
         conn.close()
         abort(403)
     
-    # Cambiar estado de privacidad
+    # Change privacy status
     new_status = not file_data[4]
     c.execute("UPDATE files SET is_public = ? WHERE id = ?", (new_status, file_id))
     conn.commit()
@@ -336,7 +336,7 @@ def delete_file(file_id):
     conn = sqlite3.connect('file_sharing.db')
     c = conn.cursor()
     
-    # Verificar propiedad
+    # Check ownership
     c.execute("SELECT * FROM files WHERE id = ? AND user_id = ?", (file_id, current_user.id))
     file_data = c.fetchone()
     
@@ -344,12 +344,12 @@ def delete_file(file_id):
         conn.close()
         abort(403)
     
-    # Eliminar archivo del sistema
+    # Delete file from system
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file_data[1])
     if os.path.exists(filepath):
         os.remove(filepath)
     
-    # Eliminar de la base de datos
+    # Delete from database
     c.execute("DELETE FROM files WHERE id = ?", (file_id,))
     conn.commit()
     conn.close()
@@ -369,7 +369,7 @@ def settings():
                 filepath = os.path.join(app.config['LOGO_FOLDER'], unique_filename)
                 logo.save(filepath)
                 
-                # Guardar en la base de datos
+                # Save to database
                 conn = sqlite3.connect('file_sharing.db')
                 c = conn.cursor()
                 c.execute("INSERT INTO settings (logo_filename) VALUES (?)", (unique_filename,))
@@ -387,7 +387,7 @@ def settings():
 def serve_logo(filename):
     return send_from_directory(app.config['LOGO_FOLDER'], filename)
 
-# Ruta para resetear la base de datos (SOLO PARA DESARROLLO)
+# Route to reset database (DEVELOPMENT ONLY)
 @app.route('/reset-db')
 def reset_db():
     reset_database()
@@ -396,6 +396,6 @@ def reset_db():
 
 
 if __name__ == '__main__':
-    # Verificar si necesitamos resetear la base de datos
+    # Check if we need to reset the database
    
     app.run(debug=True, port=5000)

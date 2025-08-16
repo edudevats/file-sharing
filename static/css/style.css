@@ -533,6 +533,20 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
+.pdf-fallback {
+    text-align: center;
+    padding: 2rem;
+    background: var(--white);
+    border-radius: 8px;
+    border: 2px dashed var(--ey-gray);
+}
+
+.pdf-fallback p {
+    color: var(--ey-gray);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
 .file-icon-preview {
     text-align: center;
     padding: 2rem;

@@ -1,9 +1,9 @@
-// Función para copiar link al portapapeles
+// Function to copy link to clipboard
 function copyLink(url) {
     navigator.clipboard.writeText(url).then(function() {
-        showNotification('Enlace copiado al portapapeles!', 'success');
+        showNotification('Link copied to clipboard!', 'success');
     }, function() {
-        // Fallback para navegadores antiguos
+        // Fallback for older browsers
         const textArea = document.createElement("textarea");
         textArea.value = url;
         textArea.style.position = "fixed";
@@ -13,17 +13,17 @@ function copyLink(url) {
         textArea.select();
         try {
             document.execCommand('copy');
-            showNotification('Enlace copiado al portapapeles!', 'success');
+            showNotification('Link copied to clipboard!', 'success');
         } catch (err) {
-            showNotification('Error al copiar el enlace', 'error');
+            showNotification('Error copying link', 'error');
         }
         document.body.removeChild(textArea);
     });
 }
 
-// Función para mostrar notificaciones temporales
+// Function to show temporary notifications
 function showNotification(message, type) {
-    // Crear elemento de notificación
+    // Create notification element
     const notification = document.createElement('div');
     notification.className = `alert alert-${type}`;
     notification.innerHTML = `
@@ -31,19 +31,19 @@ function showNotification(message, type) {
         <button class="alert-close" onclick="this.parentElement.remove()">×</button>
     `;
     
-    // Insertar al inicio del container
+    // Insert at the beginning of container
     const container = document.querySelector('.container');
     if (container) {
         container.insertBefore(notification, container.firstChild);
         
-        // Auto-remover después de 5 segundos
+        // Auto-remove after 5 seconds
         setTimeout(() => {
             notification.remove();
         }, 5000);
     }
 }
 
-// Manejador de archivo para upload
+// File handler for upload
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');

@@ -11,7 +11,7 @@
     <div class="logo-settings">
         <div class="current-logo">
             {% if logo %}
-                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo actual">
+                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Current Logo">
             {% else %}
                 <div class="logo-placeholder">No logo</div>
             {% endif %}

@@ -9,16 +9,18 @@
             {% endif %}
             <div class="file-title-section">
                 <h2>{{ file[2] }}</h2>
-                {% if file[4] %}
-                    <span class="badge badge-public">Public</span>
-                {% else %}
-                    <span class="badge badge-private">Private</span>
+                {% if current_user.is_authenticated %}
+                    {% if file[4] %}
+                        <span class="badge badge-public">Public</span>
+                    {% else %}
+                        <span class="badge badge-private">Private</span>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Vista previa del documento -->
+    <!-- Document preview -->
     <div class="file-preview">
         {% set file_extension = file[8].lower() %}
         {% if file_extension in ['jpg', 'jpeg', 'png', 'gif'] %}
@@ -27,10 +29,13 @@
             </div>
         {% elif file_extension == 'pdf' %}
             <div class="pdf-preview">
-                <iframe src="{{ url_for('download_file', token=file[5]) }}" class="preview-pdf" type="application/pdf">
-                    <p>Your browser does not support PDF preview. 
-                    <a href="{{ url_for('download_file', token=file[5]) }}">Click here to download the file</a>.</p>
-                </iframe>
+                <object data="{{ url_for('download_file', token=file[5]) }}" type="application/pdf" class="preview-pdf">
+                    <embed src="{{ url_for('download_file', token=file[5]) }}" type="application/pdf" class="preview-pdf" />
+                    <div class="pdf-fallback">
+                        <p>Your browser does not support PDF preview.</p>
+                        <a href="{{ url_for('download_file', token=file[5]) }}" class="btn btn-primary">Download PDF</a>
+                    </div>
+                </object>
             </div>
         {% else %}
             <div class="file-icon-preview">
@@ -50,6 +55,7 @@
         {% endif %}
     </div>
     
+    {% if current_user.is_authenticated %}
     <div class="file-details">
         <div class="detail-item">
             <label>File type:</label>
@@ -68,6 +74,7 @@
             <span>{{ file[9] }}</span>
         </div>
     </div>
+    {% endif %}
     
     {% if current_user.is_authenticated %}
     <div class="share-section">
