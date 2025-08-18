@@ -8,19 +8,22 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from db_wrapper import db
 
+# Get the directory where this script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['LOGO_FOLDER'] = 'logos'
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
+app.config['LOGO_FOLDER'] = os.path.join(BASE_DIR, 'logos')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt', 'zip'}
 
 # Create directories
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['LOGO_FOLDER'], exist_ok=True)
-os.makedirs('static/css', exist_ok=True)
-os.makedirs('static/js', exist_ok=True)
-os.makedirs('templates', exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'static', 'css'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'static', 'js'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'templates'), exist_ok=True)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -30,6 +33,10 @@ login_manager.login_view = 'login'
 # Database initialization
 def init_app_database():
     """Initialize database when app starts"""
+    # Set the database path to be in the project directory
+    db_path = os.path.join(BASE_DIR, 'file_sharing.db')
+    db.db_service.db_path = db_path
+    
     if not db.initialize():
         print("Failed to initialize database")
         return False
