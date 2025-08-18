@@ -8,22 +8,30 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from db_wrapper import db
 
-# Get the directory where this script is located
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# CRITICAL: Import deployment initialization FIRST
+from deploy_init import get_deployment_paths
+
+# Initialize deployment paths with forced configuration
+print("[APP] Initializing deployment configuration...")
+DEPLOYMENT_PATHS = get_deployment_paths()
+BASE_DIR = DEPLOYMENT_PATHS['base_dir']
+
+print(f"[APP] Using BASE_DIR: {BASE_DIR}")
+print(f"[APP] Current working directory: {os.getcwd()}")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
-app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
-app.config['LOGO_FOLDER'] = os.path.join(BASE_DIR, 'logos')
+# Use deployment paths to ensure correct directories
+app.config['UPLOAD_FOLDER'] = DEPLOYMENT_PATHS['uploads']
+app.config['LOGO_FOLDER'] = DEPLOYMENT_PATHS['logos']
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt', 'zip'}
 
-# Create directories
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['LOGO_FOLDER'], exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'static', 'css'), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'static', 'js'), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'templates'), exist_ok=True)
+print(f"[APP] Upload folder configured: {app.config['UPLOAD_FOLDER']}")
+print(f"[APP] Logo folder configured: {app.config['LOGO_FOLDER']}")
+
+# Directory structure is already created by deployment initialization
+print("[APP] Skipping directory creation - handled by deployment initialization")
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -33,14 +41,36 @@ login_manager.login_view = 'login'
 # Database initialization
 def init_app_database():
     """Initialize database when app starts"""
-    # Set the database path to be in the project directory
-    db_path = os.path.join(BASE_DIR, 'file_sharing.db')
+    # Use the deployment-configured database path
+    db_path = DEPLOYMENT_PATHS['database']
+    print(f"[APP] Setting database path to: {db_path}")
+    
+    # Force the database service to use our specific path
     db.db_service.db_path = db_path
     
+    # Verify the path is set correctly
+    print(f"[APP] Database service path: {db.db_service.db_path}")
+    
     if not db.initialize():
-        print("Failed to initialize database")
+        print(f"[APP] [ERROR] Failed to initialize database at: {db_path}")
         return False
-    print("Database initialized successfully")
+    
+    print(f"[APP] [OK] Database initialized successfully at: {db_path}")
+    
+    # Double-check the database was created in the right place
+    if os.path.exists(db_path):
+        print(f"[APP] [OK] Database file confirmed at: {db_path}")
+        
+        # Verify the database is in the correct project directory
+        if db_path.startswith(BASE_DIR):
+            print(f"[APP] [OK] Database is correctly located within project directory")
+        else:
+            print(f"[APP] [WARNING] Database is outside project directory!")
+            print(f"[APP]   Expected prefix: {BASE_DIR}")
+            print(f"[APP]   Actual path: {db_path}")
+    else:
+        print(f"[APP] [ERROR] Database file NOT found at expected location: {db_path}")
+    
     return True
 
 class User(UserMixin):

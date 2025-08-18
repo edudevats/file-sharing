@@ -15,9 +15,21 @@ logger = logging.getLogger(__name__)
 class DatabaseService:
     def __init__(self, db_path=None):
         if db_path is None:
-            # Get the directory where this script is located
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            db_path = os.path.join(base_dir, 'file_sharing.db')
+            # Try to use deployment configuration if available
+            try:
+                from deploy_init import get_deployment_paths
+                deployment_paths = get_deployment_paths()
+                db_path = deployment_paths['database']
+                print(f"[DB] Using deployment-configured database path: {db_path}")
+            except (ImportError, Exception) as e:
+                print(f"[DB] Deployment configuration not available, using fallback: {e}")
+                # Fallback to script directory
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                db_path = os.path.join(base_dir, 'file_sharing.db')
+                print(f"[DB] Using fallback database path: {db_path}")
+        else:
+            print(f"[DB] Using provided database path: {db_path}")
+        
         self.db_path = db_path
         self.schema_version = 3  # Current schema version
         
