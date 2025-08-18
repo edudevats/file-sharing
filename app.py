@@ -276,7 +276,9 @@ def view_file_content(token):
             mimetype='application/pdf',
             headers={
                 'Content-Disposition': f'inline; filename="{file_data["original_filename"]}"',
-                'Content-Type': 'application/pdf'
+                'Content-Type': 'application/pdf',
+                'X-Frame-Options': 'SAMEORIGIN',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
             }
         )
     elif file_extension in ['jpg', 'jpeg', 'png', 'gif']:
@@ -320,8 +322,13 @@ def toggle_public(file_id):
     new_status = not file_data['is_public']
     db.update_file_privacy(file_id, new_status)
     
-    status_text = "public" if new_status else "private"
-    flash(f'File changed to {status_text}', 'success')
+    if new_status:
+        # File is now public
+        flash(f'File "{file_data["original_filename"]}" is now public and can be shared', 'success')
+    else:
+        # File is now private
+        flash(f'File "{file_data["original_filename"]}" is now private - public access has been revoked', 'warning')
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/delete/<int:file_id>')
@@ -343,6 +350,30 @@ def delete_file(file_id):
     
     flash('File deleted successfully', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/rename_file/<int:file_id>', methods=['GET', 'POST'])
+@login_required
+def rename_file(file_id):
+    # Check ownership and get file data
+    file_data = db.get_file_by_id(file_id)
+    
+    if not file_data or file_data['user_id'] != current_user.id:
+        abort(403)
+    
+    if request.method == 'POST':
+        new_name = request.form.get('new_name')
+        
+        if not new_name or not new_name.strip():
+            flash('File name cannot be empty', 'error')
+            return redirect(request.url)
+        
+        # Update file name in database
+        db.update_file_name(file_id, new_name.strip())
+        
+        flash(f'File name updated to "{new_name}"', 'success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('rename_file.html', file=file_data)
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -426,11 +457,19 @@ def create_bundle():
         # Create bundle
         bundle_id = db.create_bundle(bundle_name, transaction_number, current_user.id, is_public, share_token)
         
-        # Add files to bundle
-        for file_id in selected_files:
-            db.add_file_to_bundle(bundle_id, file_id)
-        
-        flash(f'Bundle "{transaction_number}" created successfully!', 'success')
+        if bundle_id:
+            # Add files to bundle
+            for file_id in selected_files:
+                db.add_file_to_bundle(bundle_id, file_id)
+            
+            # Get the count of files actually added
+            bundle_files = db.get_bundle_files(bundle_id)
+            file_count = len(bundle_files)
+            
+            flash(f'Bundle "{transaction_number}" created successfully with {file_count} file{"s" if file_count != 1 else ""}!', 'success')
+        else:
+            flash('Error creating bundle', 'error')
+            
         return redirect(url_for('dashboard'))
     
     # Get user's files for selection
@@ -504,8 +543,13 @@ def toggle_bundle_public(bundle_id):
     new_status = not bundle_data['is_public']
     db.update_bundle_privacy(bundle_id, new_status)
     
-    status_text = "public" if new_status else "private"
-    flash(f'Bundle changed to {status_text}', 'success')
+    if new_status:
+        # Bundle is now public
+        flash(f'Bundle "{bundle_data["transaction_number"]}" is now public and can be shared', 'success')
+    else:
+        # Bundle is now private
+        flash(f'Bundle "{bundle_data["transaction_number"]}" is now private - public access has been revoked', 'warning')
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/edit_bundle/<int:bundle_id>', methods=['GET', 'POST'])

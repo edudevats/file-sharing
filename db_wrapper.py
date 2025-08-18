@@ -99,6 +99,13 @@ class DatabaseWrapper:
             (is_public, file_id)
         )
     
+    def update_file_name(self, file_id, new_name):
+        """Update file original filename"""
+        return self.db_service.execute_query(
+            "UPDATE files SET original_filename = ? WHERE id = ?",
+            (new_name, file_id)
+        )
+    
     def delete_file(self, file_id):
         """Delete file record"""
         return self.db_service.execute_query(
@@ -180,11 +187,17 @@ class DatabaseWrapper:
         )
     
     def get_user_bundles(self, user_id):
-        """Get all bundles for a user"""
+        """Get all bundles for a user with file count"""
         return self.db_service.execute_query(
-            """SELECT id, bundle_name, transaction_number, is_public, share_token, 
-               created_date, download_count FROM file_bundles 
-               WHERE user_id = ? ORDER BY created_date DESC""",
+            """SELECT fb.id, fb.bundle_name, fb.transaction_number, fb.is_public, fb.share_token, 
+               fb.created_date, fb.download_count,
+               COUNT(bf.file_id) as file_count
+               FROM file_bundles fb 
+               LEFT JOIN bundle_files bf ON fb.id = bf.bundle_id
+               WHERE fb.user_id = ? 
+               GROUP BY fb.id, fb.bundle_name, fb.transaction_number, fb.is_public, fb.share_token, 
+                        fb.created_date, fb.download_count
+               ORDER BY fb.created_date DESC""",
             (user_id,),
             fetch=True
         )

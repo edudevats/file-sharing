@@ -85,7 +85,8 @@
                         <td>{{ file[4][:10] if file[4] else 'N/A' }}</td>
                         <td>
                             <div class="btn-group">
-                                <a href="{{ url_for('shared_file', token=file[3]) }}" class="btn btn-sm btn-secondary">View</a>
+                                <a href="{{ url_for('shared_file', token=file[3]) }}" class="btn btn-sm btn-secondary">👁️</a>
+                                <a href="{{ url_for('rename_file', file_id=file[0]) }}" class="btn btn-sm btn-info">📝</a>
                                 <a href="{{ url_for('toggle_public', file_id=file[0]) }}" class="btn btn-sm btn-primary">
                                     {% if file[2] %}🔒{% else %}🌍{% endif %}
                                 </a>
@@ -119,6 +120,7 @@
                     <tr>
                         <th>Bundle Name</th>
                         <th>Transaction #</th>
+                        <th>Files</th>
                         <th>Status</th>
                         <th>Downloads</th>
                         <th>Created</th>
@@ -130,6 +132,9 @@
                     <tr>
                         <td class="file-name">{{ bundle[1] }}</td>
                         <td>{{ bundle[2] }}</td>
+                        <td>
+                            <span class="badge badge-files">{{ bundle[7] }} file{{ 's' if bundle[7] != 1 else '' }}</span>
+                        </td>
                         <td>
                             {% if bundle[3] %}
                                 <span class="badge badge-public">Public</span>

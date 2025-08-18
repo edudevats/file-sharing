@@ -24,32 +24,31 @@
     
     <!-- Files List -->
     <div class="bundle-files">
-        <h3>Files in this bundle</h3>
+        <h3>Files in this account</h3>
         {% if files %}
             <div class="files-grid">
                 {% for file in files %}
                 <div class="bundle-file-item">
                     <div class="file-actions-top">
-                        <a href="{{ url_for('shared_file', token=file.share_token, from_bundle=bundle.share_token) }}" class="btn btn-secondary btn-sm">
-                            👁️ View
-                        </a>
                         <a href="{{ url_for('download_file', token=file.share_token) }}" class="btn btn-primary btn-sm">
                             ⬇️ Download
                         </a>
                     </div>
-                    <div class="file-icon-large">
-                        {% if file.file_type == 'pdf' %}📄
-                        {% elif file.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}🖼️
-                        {% elif file.file_type in ['doc', 'docx'] %}📝
-                        {% elif file.file_type == 'zip' %}🗜️
-                        {% else %}📁{% endif %}
-                    </div>
-                    <div class="file-info-bottom">
-                        <h5 class="file-name-small">{{ file.original_filename }}</h5>
-                        <p class="file-details-small">
-                            <small>{{ (file.file_size / 1024) | round(2) }} KB • {{ file.file_type.upper() }}</small>
-                        </p>
-                    </div>
+                    <a href="{{ url_for('view_file_content', token=file.share_token) }}" target="_blank" class="file-clickable-area">
+                        <div class="file-icon-large">
+                            {% if file.file_type == 'pdf' %}📄
+                            {% elif file.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}🖼️
+                            {% elif file.file_type in ['doc', 'docx'] %}📝
+                            {% elif file.file_type == 'zip' %}🗜️
+                            {% else %}📁{% endif %}
+                        </div>
+                        <div class="file-info-bottom">
+                            <h5 class="file-name-small">{{ file.original_filename }}</h5>
+                            <p class="file-details-small">
+                                <small>{{ (file.file_size / 1024) | round(2) }} KB • {{ file.file_type.upper() }}</small>
+                            </p>
+                        </div>
+                    </a>
                 </div>
                 {% endfor %}
             </div>

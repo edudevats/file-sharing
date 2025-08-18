@@ -253,6 +253,16 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-info {
+    background: var(--info);
+    color: var(--white);
+}
+
+.btn-info:hover {
+    background: #138496;
+    transform: translateY(-2px);
+}
+
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
@@ -364,6 +374,154 @@ body {
     color: var(--white);
 }
 
+.badge-files {
+    background: var(--info);
+    color: var(--white);
+}
+
+/* File name truncation */
+.file-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    cursor: help;
+}
+
+.file-name:hover {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+    background: var(--ey-light-gray);
+    padding: 0.25rem;
+    border-radius: 4px;
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid var(--ey-yellow);
+}
+
+/* Selection actions styling */
+.selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--ey-light-gray);
+    border-radius: 8px;
+}
+
+.selected-count {
+    font-weight: 600;
+    color: var(--ey-dark);
+    margin-left: auto;
+}
+
+/* Improved button group spacing */
+.btn-group {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.btn-group .btn {
+    border-radius: 4px;
+}
+
+/* Edit bundle specific styling */
+.file-details-small {
+    cursor: help;
+}
+
+.file-details-small:hover {
+    background: rgba(46, 46, 56, 0.05);
+    border-radius: 4px;
+    padding: 0.25rem;
+}
+
+.file-details-small:hover strong,
+.file-details-small:hover small {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+    position: relative;
+    z-index: 10;
+}
+
+.file-details-small:hover strong {
+    background: var(--ey-dark);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.file-details-small:hover small {
+    background: var(--ey-gray);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* File clickable area styling */
+.file-clickable-area {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+.file-clickable-area::after {
+    content: 'Click to view';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--ey-dark);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.file-clickable-area:hover {
+    background: var(--ey-light-gray);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+}
+
+.file-clickable-area:hover::after {
+    opacity: 1;
+}
+
+.file-clickable-area:hover .file-icon-large {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+.file-clickable-area:hover .file-name-small {
+    color: var(--ey-dark);
+    font-weight: 700;
+}
+
 /* Upload Area */
 .upload-area {
     border: 3px dashed var(--ey-gray);
@@ -453,6 +611,12 @@ body {
     background: #d1ecf1;
     color: #0c5460;
     border: 1px solid #bee5eb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
 }
 
 .alert-close {
@@ -810,7 +974,7 @@ body {
 /* Bundle Styles */
 .file-selection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1rem;
     margin: 1rem 0;
 }
@@ -820,6 +984,7 @@ body {
     border-radius: 8px;
     padding: 1rem;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .file-selection-item:hover {
@@ -857,12 +1022,20 @@ body {
 .file-details-small strong {
     display: block;
     margin-bottom: 0.25rem;
-    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .file-details-small small {
     color: var(--ey-gray);
     font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    max-width: 100%;
 }
 
 .selection-actions {
@@ -1321,6 +1494,39 @@ body {
     .files-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+    }
+    
+    .file-selection-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .file-selection-item {
+        padding: 0.75rem;
+    }
+    
+    /* Mobile-specific file clickable area */
+    .file-clickable-area {
+        padding: 1rem;
+        margin: 0.75rem 0;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+    }
+    
+    .file-clickable-area:hover {
+        transform: none;
+        background: var(--ey-light-gray);
+        border-color: var(--ey-yellow);
+    }
+    
+    .file-actions-top {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Mobile tooltip adjustments */
+    .file-clickable-area::after {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
     }
     
     .bundle-file-item {

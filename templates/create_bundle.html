@@ -18,8 +18,8 @@
         
         <div class="form-group">
             <label class="form-label">Transaction Number</label>
-            <input type="text" name="transaction_number" class="form-control" placeholder="Enter transaction number" required>
-            <small class="form-help">This will be used as the title when sharing the bundle</small>
+            <input type="text" name="transaction_number" id="transactionNumber" class="form-control" placeholder="Enter transaction number" required>
+            <small class="form-help">This will be used as the title when sharing the bundle. Files with the same transaction number will be auto-selected.</small>
         </div>
         
         <div class="form-group">
@@ -69,6 +69,7 @@
             <div class="selection-actions">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="selectAll()">Select All</button>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="selectNone()">Select None</button>
+                <button type="button" class="btn btn-info btn-sm" onclick="selectByTransaction()">📋 Auto-Select by Transaction</button>
                 <span id="selectedCount" class="selected-count">0 files selected</span>
             </div>
             {% endif %}
@@ -92,12 +93,55 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('input[name="selected_files"]');
     const selectedCount = document.getElementById('selectedCount');
     const createBtn = document.getElementById('createBtn');
+    const transactionInput = document.getElementById('transactionNumber');
     
     function updateCount() {
         const checked = document.querySelectorAll('input[name="selected_files"]:checked').length;
         selectedCount.textContent = `${checked} files selected`;
         createBtn.disabled = checked === 0;
     }
+    
+    // Auto-select files by transaction number
+    function selectByTransaction() {
+        const transactionNumber = transactionInput.value.trim();
+        if (!transactionNumber) return;
+        
+        // First, uncheck all files
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        // Find and check files with matching transaction number
+        let matchCount = 0;
+        checkboxes.forEach(cb => {
+            const fileRow = cb.closest('.file-selection-item');
+            const label = fileRow.querySelector('.file-item-label');
+            const transactionText = label.querySelector('strong').textContent;
+            
+            if (transactionText === transactionNumber) {
+                cb.checked = true;
+                matchCount++;
+            }
+        });
+        
+        updateCount();
+        
+        if (matchCount > 0) {
+            selectedCount.textContent = `${matchCount} files auto-selected for transaction "${transactionNumber}"`;
+            selectedCount.style.color = 'var(--success)';
+            setTimeout(() => {
+                selectedCount.style.color = '';
+                updateCount();
+            }, 3000);
+        }
+    }
+    
+    // Listen for transaction number changes
+    transactionInput.addEventListener('blur', selectByTransaction);
+    transactionInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            selectByTransaction();
+        }
+    });
     
     checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
     
@@ -110,6 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
         checkboxes.forEach(cb => cb.checked = false);
         updateCount();
     };
+    
+    window.selectByTransaction = selectByTransaction;
     
     // Initial count
     updateCount();

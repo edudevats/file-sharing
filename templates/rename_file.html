@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}EY{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Rename File</h1>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        ← Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <form method="POST">
+        <div class="form-group">
+            <label class="form-label">Current Name</label>
+            <div class="current-name-display">
+                <div class="file-icon-large">
+                    {% if file.file_type == 'pdf' %}📄
+                    {% elif file.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}🖼️
+                    {% elif file.file_type in ['doc', 'docx'] %}📝
+                    {% elif file.file_type == 'zip' %}🗜️
+                    {% else %}📁{% endif %}
+                </div>
+                <div class="file-info">
+                    <strong>{{ file.original_filename }}</strong>
+                    <small>{{ file.transaction_number if file.transaction_number else 'No transaction number' }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">New Name</label>
+            <input type="text" name="new_name" class="form-control" 
+                   value="{{ file.original_filename }}" 
+                   placeholder="Enter new file name" 
+                   required maxlength="255">
+            <small class="form-help">This will change the display name of the file</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                📝 Update Name
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.current-name-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--ey-light-gray);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.file-icon-large {
+    font-size: 2rem;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.file-info strong {
+    color: var(--ey-dark);
+    font-size: 1.1rem;
+}
+
+.file-info small {
+    color: var(--ey-gray);
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
