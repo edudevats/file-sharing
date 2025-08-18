@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Create File Bundle - EY{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Create File Bundle</h1>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        ← Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <form method="POST" id="bundleForm">
+        <div class="form-group">
+            <label class="form-label">Bundle Name</label>
+            <input type="text" name="bundle_name" class="form-control" placeholder="Enter bundle name" required>
+            <small class="form-help">Internal name for this bundle</small>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Transaction Number</label>
+            <input type="text" name="transaction_number" class="form-control" placeholder="Enter transaction number" required>
+            <small class="form-help">This will be used as the title when sharing the bundle</small>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" name="is_public" id="isPublic">
+                <label for="isPublic">
+                    <strong>Make public</strong> - Anyone with the link will be able to access
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Select Files</label>
+            <div class="file-selection-grid">
+                {% if files %}
+                    {% for file in files %}
+                    <div class="file-selection-item">
+                        <div class="checkbox-group file-checkbox">
+                            <input type="checkbox" name="selected_files" value="{{ file.id }}" id="file_{{ file.id }}">
+                            <label for="file_{{ file.id }}" class="file-item-label">
+                                <div class="file-icon-small">
+                                    {% if file.file_type == 'pdf' %}📄
+                                    {% elif file.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}🖼️
+                                    {% elif file.file_type in ['doc', 'docx'] %}📝
+                                    {% elif file.file_type == 'zip' %}🗜️
+                                    {% else %}📁{% endif %}
+                                </div>
+                                <div class="file-details-small">
+                                    <strong>{{ file.transaction_number if file.transaction_number else file.original_filename }}</strong>
+                                    <small>{{ file.original_filename }} • {{ (file.file_size / 1024) | round(2) }} KB</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📁</div>
+                        <h3>No files available</h3>
+                        <p>Upload some files first to create a bundle</p>
+                        <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload Files</a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if files %}
+            <div class="selection-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="selectAll()">Select All</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="selectNone()">Select None</button>
+                <span id="selectedCount" class="selected-count">0 files selected</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if files %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="createBtn">
+                📦 Create Bundle
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="selected_files"]');
+    const selectedCount = document.getElementById('selectedCount');
+    const createBtn = document.getElementById('createBtn');
+    
+    function updateCount() {
+        const checked = document.querySelectorAll('input[name="selected_files"]:checked').length;
+        selectedCount.textContent = `${checked} files selected`;
+        createBtn.disabled = checked === 0;
+    }
+    
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+    
+    window.selectAll = function() {
+        checkboxes.forEach(cb => cb.checked = true);
+        updateCount();
+    };
+    
+    window.selectNone = function() {
+        checkboxes.forEach(cb => cb.checked = false);
+        updateCount();
+    };
+    
+    // Initial count
+    updateCount();
+});
+</script>
+{% endblock %}

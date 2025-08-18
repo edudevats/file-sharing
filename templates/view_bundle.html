@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ bundle.transaction_number }} - EY{% endblock %}
+{% block content %}
+<div class="card file-view">
+    <div class="file-header">
+        <div class="file-header-content">
+            {% if logo %}
+                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo" class="file-view-logo">
+            {% endif %}
+            <div class="file-title-section">
+                <h2>📦 {{ bundle.transaction_number }}</h2>
+                <small class="file-subtitle">{{ bundle.bundle_name }}</small>
+                {% if current_user.is_authenticated %}
+                    {% if bundle.is_public %}
+                        <span class="badge badge-public">Public Bundle</span>
+                    {% else %}
+                        <span class="badge badge-private">Private Bundle</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- Files List -->
+    <div class="bundle-files">
+        <h3>Files in this bundle</h3>
+        {% if files %}
+            <div class="files-grid">
+                {% for file in files %}
+                <div class="bundle-file-item">
+                    <div class="file-actions-top">
+                        <a href="{{ url_for('shared_file', token=file.share_token, from_bundle=bundle.share_token) }}" class="btn btn-secondary btn-sm">
+                            👁️ View
+                        </a>
+                        <a href="{{ url_for('download_file', token=file.share_token) }}" class="btn btn-primary btn-sm">
+                            ⬇️ Download
+                        </a>
+                    </div>
+                    <div class="file-icon-large">
+                        {% if file.file_type == 'pdf' %}📄
+                        {% elif file.file_type in ['jpg', 'jpeg', 'png', 'gif'] %}🖼️
+                        {% elif file.file_type in ['doc', 'docx'] %}📝
+                        {% elif file.file_type == 'zip' %}🗜️
+                        {% else %}📁{% endif %}
+                    </div>
+                    <div class="file-info-bottom">
+                        <h5 class="file-name-small">{{ file.original_filename }}</h5>
+                        <p class="file-details-small">
+                            <small>{{ (file.file_size / 1024) | round(2) }} KB • {{ file.file_type.upper() }}</small>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📁</div>
+                <h3>No files in this bundle</h3>
+                <p>This bundle appears to be empty</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if current_user.is_authenticated %}
+    <div class="bundle-details">
+        <h3>Bundle Information</h3>
+        <div class="details-grid-mobile">
+            <div class="detail-item-mobile">
+                <span class="detail-label">Transaction:</span>
+                <span class="detail-value">{{ bundle.transaction_number }}</span>
+            </div>
+            <div class="detail-item-mobile">
+                <span class="detail-label">Downloads:</span>
+                <span class="detail-value">{{ bundle.download_count }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="share-section-mobile">
+        <h3 class="share-title-mobile">Share this bundle</h3>
+        <div class="share-input-mobile">
+            <input type="text" value="{{ request.url }}" readonly class="form-control-mobile" id="shareUrl">
+            <button onclick="copyLink('{{ request.url }}')" class="btn btn-primary btn-mobile copy-btn">
+                📋 Copy Link
+            </button>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="file-actions-mobile">
+        <a href="{{ url_for('download_bundle', token=bundle.share_token) }}" class="btn btn-primary btn-mobile btn-download">
+            ⬇️ Download All Files
+        </a>
+        {% if current_user.is_authenticated and current_user.id == bundle.user_id %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-mobile">
+            ← Dashboard
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

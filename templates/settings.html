@@ -42,6 +42,12 @@
             <span>{{ current_user.email }}</span>
         </div>
     </div>
+    
+    <div class="form-actions">
+        <a href="{{ url_for('change_password') }}" class="btn btn-primary">
+            🔒 Change Password
+        </a>
+    </div>
 </div>
 
 <div class="card">

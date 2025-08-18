@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ file[2] }} - EY{% endblock %}
+{% block title %}{{ file[10] if file[10] else file[2] }} - EY{% endblock %}
 {% block content %}
 <div class="card file-view">
     <div class="file-header">
@@ -8,7 +8,10 @@
                 <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo" class="file-view-logo">
             {% endif %}
             <div class="file-title-section">
-                <h2>{{ file[2] }}</h2>
+                <h2>{{ file[10] if file[10] else file[2] }}</h2>
+                {% if file[10] %}
+                    <small class="file-subtitle">{{ file[2] }}</small>
+                {% endif %}
                 {% if current_user.is_authenticated %}
                     {% if file[4] %}
                         <span class="badge badge-public">Public</span>
@@ -20,20 +23,32 @@
         </div>
     </div>
     
+    <!-- Back to Main File Button -->
+    {% if bundle %}
+    <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+        <a href="{{ url_for('shared_bundle', token=bundle.share_token) }}" class="btn btn-secondary btn-sm">
+            📂 ← Back to Main File
+        </a>
+    </div>
+    {% endif %}
+    
     <!-- Document preview -->
     <div class="file-preview">
         {% set file_extension = file[8].lower() %}
         {% if file_extension in ['jpg', 'jpeg', 'png', 'gif'] %}
             <div class="image-preview">
-                <img src="{{ url_for('download_file', token=file[5]) }}" alt="{{ file[2] }}" class="preview-image">
+                <img src="{{ url_for('view_file_content', token=file[5]) }}" alt="{{ file[2] }}" class="preview-image">
             </div>
         {% elif file_extension == 'pdf' %}
-            <div class="pdf-preview">
-                <object data="{{ url_for('download_file', token=file[5]) }}" type="application/pdf" class="preview-pdf">
-                    <embed src="{{ url_for('download_file', token=file[5]) }}" type="application/pdf" class="preview-pdf" />
-                    <div class="pdf-fallback">
-                        <p>Your browser does not support PDF preview.</p>
-                        <a href="{{ url_for('download_file', token=file[5]) }}" class="btn btn-primary">Download PDF</a>
+            <div class="pdf-preview-mobile">
+                <object data="{{ url_for('view_file_content', token=file[5]) }}" type="application/pdf" class="preview-pdf-mobile">
+                    <embed src="{{ url_for('view_file_content', token=file[5]) }}" type="application/pdf" class="preview-pdf-mobile" />
+                    <div class="pdf-fallback-mobile">
+                        <div class="fallback-content">
+                            <div class="fallback-icon">📄</div>
+                            <p>PDF preview not available on this device</p>
+                            <p><small>Use the download or open buttons below</small></p>
+                        </div>
                     </div>
                 </object>
             </div>
@@ -55,44 +70,56 @@
         {% endif %}
     </div>
     
+    
     {% if current_user.is_authenticated %}
-    <div class="file-details">
-        <div class="detail-item">
-            <label>File type:</label>
-            <span>{{ file[8] }}</span>
+    <div class="file-details-mobile">
+        <h3 class="details-title-mobile">File Information</h3>
+        <div class="details-grid-mobile">
+            <div class="detail-item-mobile">
+                <span class="detail-label">Type:</span>
+                <span class="detail-value">{{ file[8] }}</span>
+            </div>
+            <div class="detail-item-mobile">
+                <span class="detail-label">Size:</span>
+                <span class="detail-value">{{ (file[7] / 1024) | round(2) }} KB</span>
+            </div>
+            <div class="detail-item-mobile">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ file[6][:10] if file[6] else 'N/A' }}</span>
+            </div>
+            <div class="detail-item-mobile">
+                <span class="detail-label">Downloads:</span>
+                <span class="detail-value">{{ file[9] }}</span>
+            </div>
         </div>
-        <div class="detail-item">
-            <label>Size:</label>
-            <span>{{ (file[7] / 1024) | round(2) }} KB</span>
-        </div>
-        <div class="detail-item">
-            <label>Upload date:</label>
-            <span>{{ file[6] }}</span>
-        </div>
-        <div class="detail-item">
-            <label>Downloads:</label>
-            <span>{{ file[9] }}</span>
+    </div>
+    
+    <div class="share-section-mobile">
+        <h3 class="share-title-mobile">Share this file</h3>
+        <div class="share-input-mobile">
+            <input type="text" value="{{ request.url }}" readonly class="form-control-mobile" id="shareUrl">
+            <button onclick="copyLink('{{ request.url }}')" class="btn btn-primary btn-mobile copy-btn">
+                📋 Copy Link
+            </button>
         </div>
     </div>
     {% endif %}
     
-    {% if current_user.is_authenticated %}
-    <div class="share-section">
-        <h3>Share link</h3>
-        <div class="share-input">
-            <input type="text" value="{{ request.url }}" readonly class="form-control">
-            <button onclick="copyLink('{{ request.url }}')" class="btn btn-primary">Copy</button>
+    <div class="file-actions-universal">
+        <div class="main-actions">
+            <a href="{{ url_for('download_file', token=file[5]) }}" class="btn btn-primary btn-mobile btn-download">
+                ⬇️ Download File
+            </a>
+            {% set file_extension = file[8].lower() %}
+            {% if file_extension == 'pdf' %}
+            <a href="{{ url_for('view_file_content', token=file[5]) }}" class="btn btn-secondary btn-mobile" target="_blank">
+                👁️ View
+            </a>
+            {% endif %}
         </div>
-    </div>
-    {% endif %}
-    
-    <div class="file-actions">
-        <a href="{{ url_for('download_file', token=file[5]) }}" class="btn btn-primary">
-            ⬇️ Download
-        </a>
         {% if current_user.is_authenticated and current_user.id == file[3] %}
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-            Back to Dashboard
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-mobile btn-dashboard">
+            ← Dashboard
         </a>
         {% endif %}
     </div>
