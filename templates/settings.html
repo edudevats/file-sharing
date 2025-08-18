@@ -9,23 +9,51 @@
     <h3>Application Logo</h3>
     
     <div class="logo-settings">
-        <div class="current-logo">
-            {% if logo %}
-                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Current Logo">
-            {% else %}
-                <div class="logo-placeholder">No logo</div>
-            {% endif %}
-        </div>
-        
-        <form method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label class="form-label">Upload new logo</label>
-                <input type="file" name="logo" class="form-control" accept="image/*">
-                <small>The logo will appear on the login page</small>
+        <div class="logos-grid">
+            <!-- Sign In Logo -->
+            <div class="logo-section">
+                <h4>Sign In Page Logo</h4>
+                <div class="current-logo">
+                    {% if logo %}
+                        <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Current Sign In Logo">
+                    {% else %}
+                        <div class="logo-placeholder">No sign in logo</div>
+                    {% endif %}
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Upload sign in logo</label>
+                        <input type="file" name="signin_logo" class="form-control" accept="image/*,.svg">
+                        <small>This logo appears on the sign in page</small>
+                    </div>
+                    
+                    <button type="submit" name="logo_type" value="signin" class="btn btn-primary">Update Sign In Logo</button>
+                </form>
             </div>
             
-            <button type="submit" class="btn btn-primary">Update Logo</button>
-        </form>
+            <!-- Header Logo -->
+            <div class="logo-section">
+                <h4>Header Logo</h4>
+                <div class="current-logo">
+                    {% if header_logo %}
+                        <img src="{{ url_for('serve_logo', filename=header_logo) }}" alt="Current Header Logo">
+                    {% else %}
+                        <div class="logo-placeholder">No header logo</div>
+                    {% endif %}
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Upload header logo</label>
+                        <input type="file" name="header_logo" class="form-control" accept="image/*,.svg">
+                        <small>This logo appears in the navigation header</small>
+                    </div>
+                    
+                    <button type="submit" name="logo_type" value="header" class="btn btn-primary">Update Header Logo</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 

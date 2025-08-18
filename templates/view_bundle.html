@@ -4,8 +4,9 @@
 <div class="card file-view">
     <div class="file-header">
         <div class="file-header-content">
-            {% if logo %}
-                <img src="{{ url_for('serve_logo', filename=logo) }}" alt="Logo" class="file-view-logo">
+            {% set header_logo = get_header_logo() %}
+            {% if header_logo %}
+                <img src="{{ url_for('serve_logo', filename=header_logo) }}" alt="Logo" class="file-view-logo">
             {% endif %}
             <div class="file-title-section">
                 <h2>📦 {{ bundle.transaction_number }}</h2>

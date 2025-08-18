@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['UPLOAD_FOLDER'] = DEPLOYMENT_PATHS['uploads']
 app.config['LOGO_FOLDER'] = DEPLOYMENT_PATHS['logos']
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt', 'zip'}
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'pdf', 'doc', 'docx', 'txt', 'zip'}
 
 print(f"[APP] Upload folder configured: {app.config['UPLOAD_FOLDER']}")
 print(f"[APP] Logo folder configured: {app.config['LOGO_FOLDER']}")
@@ -92,8 +92,19 @@ def allowed_file(filename):
 def get_logo():
     return db.get_logo()
 
+def get_header_logo():
+    return db.get_header_logo()
+
 def get_user_stats(user_id):
     return db.get_user_stats(user_id)
+
+@app.context_processor
+def inject_logos():
+    """Make logo functions available in all templates"""
+    return {
+        'get_header_logo': get_header_logo,
+        'get_signin_logo': get_logo
+    }
 
 @app.route('/')
 def index():
@@ -117,7 +128,7 @@ def register():
         password_hash = generate_password_hash(password)
         db.create_user(username, email, password_hash)
         
-        flash('Registration successful! Please log in.', 'success')
+        flash('Registration successful! Please sign in.', 'success')
         return redirect(url_for('login'))
     
     logo = get_logo()
@@ -146,7 +157,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Logged out successfully', 'info')
+    flash('Signed out successfully', 'info')
     return redirect(url_for('login'))
 
 @app.route('/dashboard')
@@ -231,13 +242,12 @@ def shared_file(token):
             if file_data['id'] not in file_ids_in_bundle:
                 bundle_data = None  # File not in this bundle
     
-    logo = get_logo()
     # Convert to tuple for template compatibility
     file_tuple = (file_data['id'], file_data['filename'], file_data['original_filename'], 
                   file_data['user_id'], file_data['is_public'], file_data['share_token'],
                   file_data['upload_date'], file_data['file_size'], file_data['file_type'],
                   file_data['download_count'], file_data['transaction_number'])
-    return render_template('view_file.html', file=file_tuple, logo=logo, bundle=bundle_data)
+    return render_template('view_file.html', file=file_tuple, bundle=bundle_data)
 
 @app.route('/view/<token>')
 def view_file_content(token):
@@ -379,23 +389,40 @@ def rename_file(file_id):
 @login_required
 def settings():
     if request.method == 'POST':
-        if 'logo' in request.files:
-            logo = request.files['logo']
+        logo_type = request.form.get('logo_type')
+        
+        if logo_type == 'signin' and 'signin_logo' in request.files:
+            logo = request.files['signin_logo']
             if logo and logo.filename != '' and allowed_file(logo.filename):
                 filename = secure_filename(logo.filename)
-                unique_filename = f"logo_{secrets.token_hex(4)}_{filename}"
+                unique_filename = f"signin_logo_{secrets.token_hex(4)}_{filename}"
                 filepath = os.path.join(app.config['LOGO_FOLDER'], unique_filename)
                 logo.save(filepath)
                 
                 # Save to database
                 db.set_logo(unique_filename)
                 
-                flash('Logo updated successfully', 'success')
+                flash('Sign in logo updated successfully', 'success')
+                return redirect(url_for('settings'))
+        
+        elif logo_type == 'header' and 'header_logo' in request.files:
+            logo = request.files['header_logo']
+            if logo and logo.filename != '' and allowed_file(logo.filename):
+                filename = secure_filename(logo.filename)
+                unique_filename = f"header_logo_{secrets.token_hex(4)}_{filename}"
+                filepath = os.path.join(app.config['LOGO_FOLDER'], unique_filename)
+                logo.save(filepath)
+                
+                # Save to database
+                db.set_header_logo(unique_filename)
+                
+                flash('Header logo updated successfully', 'success')
                 return redirect(url_for('settings'))
     
     stats = get_user_stats(current_user.id)
     logo = get_logo()
-    return render_template('settings.html', logo=logo, stats=stats)
+    header_logo = get_header_logo()
+    return render_template('settings.html', logo=logo, header_logo=header_logo, stats=stats)
 
 @app.route('/logo/<filename>')
 def serve_logo(filename):
@@ -492,8 +519,7 @@ def shared_bundle(token):
     # Get files in bundle
     files = db.get_bundle_files(bundle_data['id'])
     
-    logo = get_logo()
-    return render_template('view_bundle.html', bundle=bundle_data, files=files, logo=logo)
+    return render_template('view_bundle.html', bundle=bundle_data, files=files)
 
 @app.route('/download-bundle/<token>')
 def download_bundle(token):

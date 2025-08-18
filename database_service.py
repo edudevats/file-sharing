@@ -31,7 +31,7 @@ class DatabaseService:
             print(f"[DB] Using provided database path: {db_path}")
         
         self.db_path = db_path
-        self.schema_version = 3  # Current schema version
+        self.schema_version = 4  # Current schema version
         
     def get_connection(self):
         """Get database connection"""
@@ -217,6 +217,32 @@ class DatabaseService:
         self.set_schema_version(3)
         logger.info("✓ Schema version 3 applied")
     
+    def migrate_to_version_4(self):
+        """Add header logo functionality to settings table"""
+        logger.info("Migrating to schema version 4...")
+        
+        try:
+            # Check if column already exists
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(settings)")
+            columns = [column[1] for column in cursor.fetchall()]
+            conn.close()
+            
+            if 'header_logo_filename' not in columns:
+                self.execute_query('''
+                    ALTER TABLE settings ADD COLUMN header_logo_filename TEXT
+                ''')
+                logger.info("✓ Added header_logo_filename column to settings table")
+            else:
+                logger.info("✓ header_logo_filename column already exists")
+            
+            self.set_schema_version(4)
+            logger.info("✓ Schema version 4 applied")
+        except Exception as e:
+            logger.error(f"Error migrating to version 4: {e}")
+            raise
+    
     def run_migrations(self):
         """Run all necessary migrations"""
         current_version = self.get_schema_version()
@@ -240,6 +266,10 @@ class DatabaseService:
         if current_version < 3:
             self.migrate_to_version_3()
             current_version = 3
+        
+        if current_version < 4:
+            self.migrate_to_version_4()
+            current_version = 4
         
         logger.info(f"Database migration completed. Current version: {current_version}")
     

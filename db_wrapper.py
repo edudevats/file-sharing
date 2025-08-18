@@ -247,19 +247,48 @@ class DatabaseWrapper:
     
     # Settings operations
     def get_logo(self):
-        """Get current logo filename"""
+        """Get current sign in logo filename"""
         result = self.db_service.execute_query(
             "SELECT logo_filename FROM settings ORDER BY id DESC LIMIT 1",
             fetch_one=True
         )
         return result['logo_filename'] if result else None
     
+    def get_header_logo(self):
+        """Get current header logo filename"""
+        result = self.db_service.execute_query(
+            "SELECT header_logo_filename FROM settings ORDER BY id DESC LIMIT 1",
+            fetch_one=True
+        )
+        return result['header_logo_filename'] if result else None
+    
     def set_logo(self, logo_filename):
-        """Set new logo"""
+        """Set new sign in logo"""
         return self.db_service.execute_query(
             "INSERT INTO settings (logo_filename) VALUES (?)",
             (logo_filename,)
         )
+    
+    def set_header_logo(self, header_logo_filename):
+        """Set new header logo"""
+        # Get current settings
+        current = self.db_service.execute_query(
+            "SELECT logo_filename FROM settings ORDER BY id DESC LIMIT 1",
+            fetch_one=True
+        )
+        
+        if current:
+            # Update existing record
+            return self.db_service.execute_query(
+                "UPDATE settings SET header_logo_filename = ? WHERE id = (SELECT MAX(id) FROM settings)",
+                (header_logo_filename,)
+            )
+        else:
+            # Create new record
+            return self.db_service.execute_query(
+                "INSERT INTO settings (header_logo_filename) VALUES (?)",
+                (header_logo_filename,)
+            )
     
     # Statistics operations
     def get_user_stats(self, user_id):

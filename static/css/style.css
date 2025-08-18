@@ -99,6 +99,12 @@ body {
     text-decoration: none;
 }
 
+.navbar-logo {
+    height: 40px;
+    max-width: 120px;
+    object-fit: contain;
+}
+
 .brand-ey {
     background: var(--ey-yellow);
     color: var(--ey-dark);
@@ -520,6 +526,48 @@ body {
 .file-clickable-area:hover .file-name-small {
     color: var(--ey-dark);
     font-weight: 700;
+}
+
+/* Logos grid layout */
+.logos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.logo-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: var(--ey-light-gray);
+}
+
+.logo-section h4 {
+    margin: 0 0 1rem 0;
+    color: var(--ey-dark);
+    font-size: 1.1rem;
+}
+
+.current-logo {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.current-logo img {
+    max-height: 80px;
+    max-width: 200px;
+    object-fit: contain;
+}
+
+.logo-placeholder {
+    color: var(--ey-gray);
+    font-style: italic;
+    padding: 2rem;
 }
 
 /* Upload Area */
